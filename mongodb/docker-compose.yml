@@ -1,0 +1,82 @@
+# TripMate MongoDB — Tahap 1
+# Semua nama container, port, network, dan replica set mengikuti 00_KONTEKS_BERSAMA.md
+services:
+  cfg1:
+    image: mongo:7
+    container_name: cfg1
+    command: mongod --configsvr --replSet cfgRS --port 27017 --bind_ip_all
+    volumes:
+      - cfg1-data:/data/configdb
+    networks: [tripmate-net]
+
+  shard1a:
+    image: mongo:7
+    container_name: shard1a
+    command: mongod --shardsvr --replSet shard1RS --port 27017 --bind_ip_all
+    volumes:
+      - shard1a-data:/data/db
+    networks: [tripmate-net]
+
+  shard1b:
+    image: mongo:7
+    container_name: shard1b
+    command: mongod --shardsvr --replSet shard1RS --port 27017 --bind_ip_all
+    volumes:
+      - shard1b-data:/data/db
+    networks: [tripmate-net]
+
+  shard1c:
+    image: mongo:7
+    container_name: shard1c
+    command: mongod --shardsvr --replSet shard1RS --port 27017 --bind_ip_all
+    volumes:
+      - shard1c-data:/data/db
+    networks: [tripmate-net]
+
+  shard2a:
+    image: mongo:7
+    container_name: shard2a
+    command: mongod --shardsvr --replSet shard2RS --port 27017 --bind_ip_all
+    volumes:
+      - shard2a-data:/data/db
+    networks: [tripmate-net]
+
+  shard2b:
+    image: mongo:7
+    container_name: shard2b
+    command: mongod --shardsvr --replSet shard2RS --port 27017 --bind_ip_all
+    volumes:
+      - shard2b-data:/data/db
+    networks: [tripmate-net]
+
+  shard2c:
+    image: mongo:7
+    container_name: shard2c
+    command: mongod --shardsvr --replSet shard2RS --port 27017 --bind_ip_all
+    volumes:
+      - shard2c-data:/data/db
+    networks: [tripmate-net]
+
+  mongos:
+    image: mongo:7
+    container_name: mongos
+    command: mongos --configdb cfgRS/cfg1:27017 --port 27017 --bind_ip_all
+    ports: ["27017:27017"]
+    depends_on: [cfg1]
+    restart: unless-stopped
+    networks: [tripmate-net]
+
+networks:
+  tripmate-net:
+  
+    external: true
+
+# Volume tidak mengubah kesepakatan; hanya menjaga data ketika container dibuat ulang.
+volumes:
+  cfg1-data:
+  shard1a-data:
+  shard1b-data:
+  shard1c-data:
+  shard2a-data:
+  shard2b-data:
+  shard2c-data:
