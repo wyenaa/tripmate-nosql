@@ -1,0 +1,60 @@
+# Redis (Wyena): 1 master + 2 replica + 3 Sentinel, tanpa sharding.
+# Prasyarat (sekali per laptop):  docker network create tripmate-net
+services:
+  redis-master:
+    image: redis:7
+    container_name: redis-master
+    command: redis-server --appendonly yes
+    ports: [ "6379:6379" ]
+    networks: [ tripmate-net ]
+
+  redis-replica-1:
+    image: redis:7
+    container_name: redis-replica-1
+    command: redis-server --replicaof redis-master 6379
+    ports: [ "6380:6379" ]
+    depends_on: [ redis-master ]
+    networks: [ tripmate-net ]
+
+  redis-replica-2:
+    image: redis:7
+    container_name: redis-replica-2
+    command: redis-server --replicaof redis-master 6379
+    ports: [ "6381:6379" ]
+    depends_on: [ redis-master ]
+    networks: [ tripmate-net ]
+
+  # Tiap Sentinel menulis ulang file konfigurasinya, jadi template disalin dulu.
+  sentinel-1:
+    image: redis:7
+    container_name: sentinel-1
+    command: sh -c "cp /etc/redis-template/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf"
+    volumes:
+      - ./sentinel/sentinel.conf:/etc/redis-template/sentinel.conf:ro
+    ports: [ "26379:26379" ]
+    depends_on: [ redis-master, redis-replica-1, redis-replica-2 ]
+    networks: [ tripmate-net ]
+
+  sentinel-2:
+    image: redis:7
+    container_name: sentinel-2
+    command: sh -c "cp /etc/redis-template/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf"
+    volumes:
+      - ./sentinel/sentinel.conf:/etc/redis-template/sentinel.conf:ro
+    ports: [ "26380:26379" ]
+    depends_on: [ redis-master, redis-replica-1, redis-replica-2 ]
+    networks: [ tripmate-net ]
+
+  sentinel-3:
+    image: redis:7
+    container_name: sentinel-3
+    command: sh -c "cp /etc/redis-template/sentinel.conf /data/sentinel.conf && redis-sentinel /data/sentinel.conf"
+    volumes:
+      - ./sentinel/sentinel.conf:/etc/redis-template/sentinel.conf:ro
+    ports: [ "26381:26379" ]
+    depends_on: [ redis-master, redis-replica-1, redis-replica-2 ]
+    networks: [ tripmate-net ]
+
+networks:
+  tripmate-net:
+    external: true

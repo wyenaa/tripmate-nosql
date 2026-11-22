@@ -1,0 +1,41 @@
+# Seed cache Redis (dataset bersama, bagian 6 di 00_KONTEKS_BERSAMA.md)
+# Jalankan:  docker exec -i redis-master redis-cli < commands/seed.redis
+
+# ---- dest:{id} -> detail destinasi (sumber: MongoDB destinations), TTL 24 jam ----
+HSET dest:D001 name "Pantai Kuta" category "pantai" city "Badung"
+EXPIRE dest:D001 86400
+HSET dest:D002 name "Pantai Parangtritis" category "pantai" city "Bantul"
+EXPIRE dest:D002 86400
+HSET dest:D003 name "Pantai Balekambang" category "pantai" city "Malang"
+EXPIRE dest:D003 86400
+HSET dest:D004 name "Gunung Bromo" category "gunung" city "Probolinggo"
+EXPIRE dest:D004 86400
+HSET dest:D005 name "Kawah Ijen" category "gunung" city "Banyuwangi"
+EXPIRE dest:D005 86400
+HSET dest:D006 name "Gunung Prau" category "gunung" city "Wonosobo"
+EXPIRE dest:D006 86400
+HSET dest:D007 name "Candi Borobudur" category "budaya" city "Magelang"
+EXPIRE dest:D007 86400
+HSET dest:D008 name "Candi Prambanan" category "budaya" city "Sleman"
+EXPIRE dest:D008 86400
+HSET dest:D009 name "Keraton Yogyakarta" category "budaya" city "Yogyakarta"
+EXPIRE dest:D009 86400
+HSET dest:D010 name "Coban Rondo" category "alam" city "Malang"
+EXPIRE dest:D010 86400
+HSET dest:D011 name "Kebun Raya Bogor" category "alam" city "Bogor"
+EXPIRE dest:D011 86400
+HSET dest:D012 name "Danau Toba" category "alam" city "Samosir"
+EXPIRE dest:D012 86400
+HSET dest:D013 name "Jatim Park 2" category "rekreasi" city "Batu"
+EXPIRE dest:D013 86400
+HSET dest:D014 name "Dunia Fantasi" category "rekreasi" city "Jakarta Utara"
+EXPIRE dest:D014 86400
+HSET dest:D015 name "Museum Angkut" category "rekreasi" city "Batu"
+EXPIRE dest:D015 86400
+
+# ---- popular:destinations -> jumlah kunjungan (sumber: Neo4j query 6), tanpa TTL ----
+ZADD popular:destinations 2 D001 2 D002 2 D004 2 D007 2 D010 2 D013 1 D005 1 D008 1 D011 1 D014
+
+# ---- rec:U001 -> hasil rekomendasi (sumber: Neo4j query 3), TTL 1 jam ----
+# Ganti isinya dengan hasil asli dari Naufal bila berbeda.
+SET rec:U001 "[\"D002\",\"D005\",\"D007\",\"D008\",\"D010\"]" EX 3600
