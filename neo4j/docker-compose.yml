@@ -1,0 +1,82 @@
+# TripMate - Neo4j Recommendation Service (Naufal)
+# Cluster 3 server: neo4j1 = PRIMARY, neo4j2 & neo4j3 = SECONDARY
+# Diadaptasi dari tutorial resmi Neo4j "Deploying a Neo4j cluster in a Docker container"
+
+# Satu versi image untuk ketiga server (wajib sama)
+x-neo4j-image: &neo4j-image neo4j:2026.10.2-enterprise
+
+x-neo4j-env: &neo4j-env
+  NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+  NEO4J_AUTH: neo4j/tripmate123
+  EXTENDED_CONF: "yes"
+  NEO4J_EDITION: docker_compose
+
+# Perbaikan untuk Windows:
+# File yang di-mount dari Windows terbaca dengan permission 777, sedangkan
+# EXTENDED_CONF mewajibkan neo4j.conf maksimal 640. Kalau di-mount ke /conf,
+# script startup Neo4j menyalinnya dengan permission 777 dan Neo4j gagal start.
+# Jadi conf di-mount ke /tripmate, disalin ke folder conf Neo4j lebih dulu,
+# lalu script startup asli mengatur permission-nya menjadi 600.
+x-neo4j-entrypoint: &neo4j-entrypoint
+  - tini
+  - -g
+  - --
+  - bash
+  - -c
+  - cp /tripmate/neo4j.conf /var/lib/neo4j/conf/neo4j.conf && exec /startup/docker-entrypoint.sh neo4j
+
+services:
+  neo4j1:
+    image: *neo4j-image
+    container_name: neo4j1
+    hostname: neo4j1
+    entrypoint: *neo4j-entrypoint
+    ports: ["7474:7474", "7687:7687"]
+    volumes:
+      - ./conf/neo4j.conf:/tripmate/neo4j.conf:ro
+      - ./data/neo4j1:/data
+      - ./logs/neo4j1:/logs
+    environment:
+      <<: *neo4j-env
+      NEO4J_initial_server_mode__constraint: PRIMARY
+    networks:
+      tripmate-net:
+        aliases: [neo4j-network]
+
+  neo4j2:
+    image: *neo4j-image
+    container_name: neo4j2
+    hostname: neo4j2
+    entrypoint: *neo4j-entrypoint
+    ports: ["7475:7474", "7688:7687"]
+    volumes:
+      - ./conf/neo4j.conf:/tripmate/neo4j.conf:ro
+      - ./data/neo4j2:/data
+      - ./logs/neo4j2:/logs
+    environment:
+      <<: *neo4j-env
+      NEO4J_initial_server_mode__constraint: SECONDARY
+    networks:
+      tripmate-net:
+        aliases: [neo4j-network]
+
+  neo4j3:
+    image: *neo4j-image
+    container_name: neo4j3
+    hostname: neo4j3
+    entrypoint: *neo4j-entrypoint
+    ports: ["7476:7474", "7689:7687"]
+    volumes:
+      - ./conf/neo4j.conf:/tripmate/neo4j.conf:ro
+      - ./data/neo4j3:/data
+      - ./logs/neo4j3:/logs
+    environment:
+      <<: *neo4j-env
+      NEO4J_initial_server_mode__constraint: SECONDARY
+    networks:
+      tripmate-net:
+        aliases: [neo4j-network]
+
+networks:
+  tripmate-net:
+    external: true
